@@ -2,6 +2,7 @@ package ai.chat2db.spi.sql;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -418,9 +419,10 @@ public class SQLExecutor implements CommandExecutor {
                 List<Table> tables = ResultSetUtils.toObjectList(resultSet, Table.class);
                 if (CollectionUtils.isNotEmpty(tables)) {
                     for (Table table : tables) {
-                        String sql = "show table status where name = '" + table.getName() + "'";
-                        try (Statement stmt = connection.createStatement()) {
-                            boolean query = stmt.execute(sql);
+                        String sql = "show table status where name = ?";
+                        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                            stmt.setString(1, table.getName());
+                            boolean query = stmt.execute();
                             if (query) {
                                 try (ResultSet rs = stmt.getResultSet();) {
                                     while (rs.next()) {
